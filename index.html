@@ -1,0 +1,973 @@
+<title>Gunnison Assessor Audit</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,500;8..60,600;8..60,700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    color-scheme: light;
+    --surface-page:   #F2F5F3;
+    --surface-card:   #FFFFFF;
+    --surface-sunken: #E7ECE9;
+    --surface-track:  #E2E8E5;
+    --border:         #D5DCD8;
+    --border-strong:  #BFC9C4;
+    --text-primary:   #171B19;
+    --text-secondary: #4C5652;
+    --text-muted:     #7A857F;
+
+    --accent:         #0B5D56;
+    --accent-soft:    #E1F0EC;
+    --accent-ink:     #06413C;
+
+    --c-chatgpt:      #1E8A72;
+    --c-gemini:       #3A5FC4;
+    --c-claude:       #C1622B;
+    --c-gunnison:     #B8871F;
+    --c-neutral-bar:  #93A3AE;
+
+    --good:     #0ca30c;
+    --warning:  #b8860b;
+    --serious:  #d4652f;
+    --critical: #d03b3b;
+
+    --good-soft:     #E4F5E1;
+    --warning-soft:  #FBF0D6;
+    --serious-soft:  #FBE3D6;
+    --critical-soft: #FADCDC;
+
+    --shadow-card: 0 1px 2px rgba(20,30,26,0.06), 0 8px 24px -12px rgba(20,30,26,0.18);
+    --radius-card: 14px;
+    --radius-sm: 8px;
+
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
+  @media (prefers-color-scheme: dark){
+    :root:where(:not([data-theme="light"])){
+      color-scheme: dark;
+      --surface-page:   #121615;
+      --surface-card:   #1A211F;
+      --surface-sunken: #202826;
+      --surface-track:  #26302D;
+      --border:         #2C3735;
+      --border-strong:  #3A4643;
+      --text-primary:   #F2F4F2;
+      --text-secondary: #B7C0BB;
+      --text-muted:     #838E88;
+
+      --accent:         #4FBFAF;
+      --accent-soft:    #1B3330;
+      --accent-ink:     #BFEBE2;
+
+      --c-chatgpt:      #2FA98A;
+      --c-gemini:       #6B87E0;
+      --c-claude:       #C86A2E;
+      --c-gunnison:     #D9A53E;
+      --c-neutral-bar:  #5C6E76;
+
+      --good:     #4fb54f;
+      --warning:  #e0b23c;
+      --serious:  #ec835a;
+      --critical: #e0605f;
+
+      --good-soft:     #1E2E1E;
+      --warning-soft:  #362C16;
+      --serious-soft:  #38251C;
+      --critical-soft: #3A1F1F;
+    }
+  }
+  :root[data-theme="dark"]{
+    color-scheme: dark;
+    --surface-page:   #121615;
+    --surface-card:   #1A211F;
+    --surface-sunken: #202826;
+    --surface-track:  #26302D;
+    --border:         #2C3735;
+    --border-strong:  #3A4643;
+    --text-primary:   #F2F4F2;
+    --text-secondary: #B7C0BB;
+    --text-muted:     #838E88;
+
+    --accent:         #4FBFAF;
+    --accent-soft:    #1B3330;
+    --accent-ink:     #BFEBE2;
+
+    --c-chatgpt:      #2FA98A;
+    --c-gemini:       #6B87E0;
+    --c-claude:       #C86A2E;
+    --c-gunnison:     #D9A53E;
+    --c-neutral-bar:  #5C6E76;
+
+    --good:     #4fb54f;
+    --warning:  #e0b23c;
+    --serious:  #ec835a;
+    --critical: #e0605f;
+
+    --good-soft:     #1E2E1E;
+    --warning-soft:  #362C16;
+    --serious-soft:  #38251C;
+    --critical-soft: #3A1F1F;
+  }
+
+  *{ box-sizing:border-box; }
+  html,body{ margin:0; padding:0; }
+  body{
+    background: var(--surface-page);
+    color: var(--text-primary);
+    font-family: "Inter", ui-sans-serif, system-ui, sans-serif;
+    font-size: 16px;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+  }
+  img{ max-width:100%; }
+  [hidden]{ display:none!important; }
+
+  h1,h2,h3{
+    font-family: "Source Serif 4", ui-serif, Georgia, serif;
+    font-weight: 600;
+    text-wrap: balance;
+    margin: 0;
+    color: var(--text-primary);
+  }
+
+  .wrap{
+    max-width: 1040px;
+    margin: 0 auto;
+    padding-inline: 20px;
+    padding-block: 28px 64px;
+  }
+
+  .eyebrow{
+    font-family:"Inter", sans-serif;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+
+  header.masthead{
+    padding-bottom: 28px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 28px;
+  }
+  header.masthead h1{
+    font-size: clamp(1.9rem, 4.6vw, 2.7rem);
+    margin-top: 8px;
+    letter-spacing: -0.01em;
+  }
+  header.masthead .dek{
+    max-width: 66ch;
+    margin-top: 14px;
+    font-size: 1.05rem;
+    color: var(--text-secondary);
+  }
+  .meta-row{
+    display:flex;
+    flex-wrap: wrap;
+    gap: 8px 22px;
+    margin-top: 18px;
+    font-size: 0.82rem;
+    color: var(--text-muted);
+  }
+  .meta-row span b{ color: var(--text-secondary); font-weight:600; }
+
+  section{ margin-bottom: 44px; }
+  .section-head{ margin-bottom: 16px; }
+  .section-head h2{ font-size: clamp(1.25rem,2.3vw,1.5rem); }
+  .section-head p{ margin: 6px 0 0; color: var(--text-secondary); font-size: 0.94rem; max-width: 70ch; }
+
+  /* stat tiles */
+  .stat-grid{
+    display:grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+  }
+  @media (max-width: 760px){ .stat-grid{ grid-template-columns: repeat(2,1fr); } }
+  .stat-tile{
+    background: var(--surface-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-card);
+    padding: 16px 16px 14px;
+    box-shadow: var(--shadow-card);
+    display:flex;
+    flex-direction:column;
+    gap: 6px;
+  }
+  .stat-tile .tag{
+    font-size: 0.68rem;
+    font-weight:700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+  .stat-tile .headline{
+    display:flex;
+    align-items: baseline;
+    gap: 8px;
+  }
+  .stat-tile .num{
+    font-size: clamp(1.7rem,3vw,2.15rem);
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.02em;
+  }
+  .stat-tile .of100{ font-size:0.8rem; color:var(--text-muted); font-weight:600; }
+  .stat-tile .sub{ font-size: 0.82rem; color: var(--text-secondary); }
+  .swatch-dot{
+    display:inline-block; width:9px; height:9px; border-radius:50%;
+    margin-right:6px; flex-shrink:0;
+  }
+  .grade-chip{
+    display:inline-flex; align-items:center; justify-content:center;
+    width: 30px; height:30px; border-radius: 50%;
+    font-weight:800; font-size:0.95rem;
+    border: 2px solid currentColor;
+  }
+  .grade-chip[data-g="A"],.grade-chip[data-g="B"]{ color:var(--good); background:var(--good-soft); }
+  .grade-chip[data-g="C"]{ color:var(--warning); background:var(--warning-soft); }
+  .grade-chip[data-g="D"]{ color:var(--serious); background:var(--serious-soft); }
+  .grade-chip[data-g="F"]{ color:var(--critical); background:var(--critical-soft); }
+
+  /* critical banner */
+  .banner{
+    background: var(--critical-soft);
+    border: 1px solid color-mix(in srgb, var(--critical) 45%, var(--border));
+    border-left: 5px solid var(--critical);
+    border-radius: var(--radius-sm);
+    padding: 18px 20px;
+    display:flex;
+    gap: 14px;
+  }
+  .banner .ico{
+    font-size: 1.3rem;
+    line-height:1;
+    color: var(--critical);
+    flex-shrink:0;
+  }
+  .banner h3{
+    font-family:"Inter",sans-serif;
+    font-size: 0.98rem;
+    font-weight: 800;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    color: var(--critical);
+    margin-bottom:6px;
+  }
+  .banner p{ margin: 0 0 8px; color: var(--text-primary); font-size:0.95rem; }
+  .banner .cite{ font-size: 0.78rem; color: var(--text-muted); }
+
+  /* legend */
+  .legend{
+    display:flex; flex-wrap:wrap; gap: 16px;
+    font-size: 0.82rem; color: var(--text-secondary);
+    margin-bottom: 18px;
+  }
+  .legend .item{ display:flex; align-items:center; gap:6px; }
+  .legend .item .est{ font-style:italic; color:var(--text-muted); }
+
+  /* category compare chart */
+  .cat-block{
+    background: var(--surface-card);
+    border:1px solid var(--border);
+    border-radius: var(--radius-card);
+    padding: 18px 20px 8px;
+    box-shadow: var(--shadow-card);
+  }
+  .cat-row{
+    display:grid;
+    grid-template-columns: 168px 1fr;
+    gap: 14px;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .cat-row:last-child{ border-bottom:none; }
+  .cat-label{ font-size:0.86rem; font-weight:600; color:var(--text-primary); padding-top:2px; }
+  .cat-label .max{ display:block; font-weight:500; font-size:0.72rem; color:var(--text-muted); margin-top:2px; }
+  .cat-bars{ display:flex; flex-direction:column; gap:5px; justify-content:center; }
+  .bar-line{ display:grid; grid-template-columns: 58px 1fr 40px; align-items:center; gap:8px; }
+  .bar-line .who{ font-size:0.72rem; color:var(--text-muted); font-weight:600; text-align:right; }
+  .bar-track{
+    position:relative; height:11px; background:var(--surface-track);
+    border-radius:5px; overflow:hidden;
+  }
+  .bar-fill{
+    position:absolute; inset:0 auto 0 0; height:100%;
+    border-radius:5px;
+  }
+  .bar-fill.est{
+    background-image: repeating-linear-gradient(135deg, currentColor 0 3px, transparent 3px 7px);
+    background-color: transparent !important;
+    opacity: 0.9;
+  }
+  .bar-val{ font-size:0.76rem; font-variant-numeric:tabular-nums; color:var(--text-secondary); text-align:right; }
+  .cat-foot{ font-size:0.76rem; color:var(--text-muted); padding: 12px 2px 10px; }
+
+  /* county ranking chart */
+  .rank-card{
+    background: var(--surface-card);
+    border:1px solid var(--border);
+    border-radius: var(--radius-card);
+    padding: 18px 20px;
+    box-shadow: var(--shadow-card);
+  }
+  .rank-scale{
+    display:grid; grid-template-columns: 26px 96px 1fr 38px;
+    gap:8px; font-size:0.68rem; color:var(--text-muted); padding: 0 0 6px;
+  }
+  .rank-scale .ticks{ position:relative; height:14px; }
+  .rank-scale .ticks span{ position:absolute; transform:translateX(-50%); }
+  .county-row{
+    display:grid;
+    grid-template-columns: 26px 96px 1fr 38px;
+    align-items:center;
+    gap:8px;
+    padding: 3.5px 0;
+  }
+  .county-row .rk{ font-size:0.72rem; color:var(--text-muted); font-variant-numeric:tabular-nums; }
+  .county-row .nm{
+    font-size:0.82rem; font-weight:500; color:var(--text-secondary);
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  }
+  .county-row.is-gunnison .nm{ font-weight:800; color: var(--c-gunnison); }
+  .county-row .val{ font-size:0.78rem; text-align:right; font-variant-numeric:tabular-nums; color:var(--text-secondary); }
+  .county-row.is-gunnison .val{ font-weight:800; color:var(--c-gunnison); }
+  .ctrack{ position:relative; height:9px; background:var(--surface-track); border-radius:4px; }
+  .cfill{ position:absolute; inset:0 auto 0 0; height:100%; border-radius:4px; background:var(--c-neutral-bar); }
+  .county-row.is-gunnison .cfill{ background:var(--c-gunnison); }
+  .county-row[data-tip]{ position:relative; }
+  .county-row[data-tip]:hover::after{
+    content: attr(data-tip);
+    position:absolute; left:130px; top:-26px; z-index:5;
+    background: var(--text-primary); color: var(--surface-page);
+    font-size:0.7rem; font-weight:600; padding:4px 8px; border-radius:6px;
+    white-space:nowrap; box-shadow: var(--shadow-card);
+  }
+  .rank-foot{ font-size:0.78rem; color:var(--text-muted); margin-top:12px; padding-top:12px; border-top:1px solid var(--border); }
+
+  /* action plan */
+  .plan-group{ margin-bottom: 18px; }
+  .plan-group-head{
+    display:flex; align-items:center; gap:10px; margin-bottom:10px;
+  }
+  .pill{
+    display:inline-flex; align-items:center; gap:6px;
+    font-size:0.72rem; font-weight:800; letter-spacing:0.03em; text-transform:uppercase;
+    padding: 4px 10px; border-radius: 999px;
+  }
+  .pill[data-p="0"]{ background:var(--critical-soft); color:var(--critical); }
+  .pill[data-p="1"]{ background:var(--serious-soft); color:var(--serious); }
+  .pill[data-p="2"]{ background:var(--warning-soft); color:var(--warning); }
+  .plan-group-head .cnt{ font-size:0.82rem; color:var(--text-muted); }
+
+  .card-list{ display:flex; flex-direction:column; gap:10px; }
+  .plan-card{
+    background: var(--surface-card);
+    border:1px solid var(--border);
+    border-left: 4px solid var(--border-strong);
+    border-radius: var(--radius-sm);
+    padding: 14px 16px;
+    box-shadow: var(--shadow-card);
+    display:grid;
+    grid-template-columns: 1fr 150px;
+    gap: 14px;
+  }
+  .plan-card[data-p="0"]{ border-left-color: var(--critical); }
+  .plan-card[data-p="1"]{ border-left-color: var(--serious); }
+  .plan-card[data-p="2"]{ border-left-color: var(--warning); }
+  @media (max-width: 700px){ .plan-card{ grid-template-columns: 1fr; } }
+  .plan-card .issue{ font-weight:700; font-size:0.94rem; margin-bottom:4px; }
+  .plan-card .fix{ font-size:0.88rem; color:var(--text-secondary); }
+  .plan-side{ display:flex; flex-direction:column; gap:8px; align-items:flex-start; }
+  .flag-row{ display:flex; gap:6px; flex-wrap:wrap; }
+  .flag-chip{
+    display:inline-flex; align-items:center; gap:5px;
+    font-size:0.68rem; font-weight:700; color:var(--text-secondary);
+    background: var(--surface-sunken); border:1px solid var(--border);
+    padding: 2px 8px 2px 6px; border-radius:999px;
+  }
+  .effort-tag{ font-size:0.7rem; color:var(--text-muted); }
+  .effort-tag b{ color:var(--text-secondary); }
+
+  /* strengths */
+  .strength-grid{
+    display:grid; grid-template-columns: repeat(2,1fr); gap:12px;
+  }
+  @media (max-width:700px){ .strength-grid{ grid-template-columns: 1fr; } }
+  .strength-card{
+    background: var(--surface-card); border:1px solid var(--border);
+    border-radius: var(--radius-sm); padding: 14px 16px;
+    display:flex; gap:10px;
+  }
+  .strength-card .mark{ color: var(--good); font-size:1.05rem; line-height:1.3; }
+  .strength-card .body b{ display:block; font-size:0.9rem; margin-bottom:2px; }
+  .strength-card .body span{ font-size:0.85rem; color:var(--text-secondary); }
+
+  .prompt-block{
+    background: var(--surface-card);
+    border:1px solid var(--border);
+    border-radius: var(--radius-card);
+    box-shadow: var(--shadow-card);
+    margin-bottom: 44px;
+  }
+  .prompt-block summary{
+    cursor: pointer;
+    list-style: none;
+    padding: 16px 20px;
+    display:flex;
+    align-items:center;
+    justify-content: space-between;
+    gap: 12px;
+    font-family:"Inter",sans-serif;
+  }
+  .prompt-block summary::-webkit-details-marker{ display:none; }
+  .prompt-block summary .st{ display:flex; align-items:center; gap:10px; }
+  .prompt-block summary .st b{ font-size:0.95rem; }
+  .prompt-block summary .st span{ font-size:0.8rem; color:var(--text-muted); }
+  .prompt-block summary .chev{
+    font-size: 0.7rem; color: var(--accent); transition: transform 0.15s ease;
+    flex-shrink:0;
+  }
+  .prompt-block[open] summary .chev{ transform: rotate(90deg); }
+  .prompt-body{
+    padding: 4px 22px 22px;
+    border-top: 1px solid var(--border);
+  }
+  .prompt-body h4{
+    font-family:"Inter",sans-serif; font-size:0.76rem; font-weight:800;
+    text-transform:uppercase; letter-spacing:0.06em; color:var(--accent);
+    margin: 18px 0 8px;
+  }
+  .prompt-body h4:first-child{ margin-top:16px; }
+  .prompt-body p, .prompt-body li{ font-size: 0.9rem; color: var(--text-secondary); }
+  .prompt-body p{ margin: 0 0 10px; }
+  .prompt-body ol, .prompt-body ul{ margin: 0 0 10px; padding-left: 20px; }
+  .prompt-body table{ border-collapse: collapse; width:100%; margin: 6px 0 14px; font-size: 0.84rem; }
+  .prompt-body th, .prompt-body td{
+    text-align:left; padding: 7px 10px; border: 1px solid var(--border);
+    vertical-align: top; color: var(--text-secondary);
+  }
+  .prompt-body th{ background: var(--surface-sunken); color: var(--text-primary); font-weight:700; white-space:nowrap; }
+  .prompt-body-scroll{ overflow-x:auto; }
+
+  footer.methods{
+    border-top: 1px solid var(--border);
+    padding-top: 22px;
+    font-size: 0.82rem;
+    color: var(--text-muted);
+  }
+  footer.methods h3{
+    font-family:"Inter",sans-serif; font-size:0.78rem; font-weight:800;
+    text-transform:uppercase; letter-spacing:0.06em; color:var(--text-secondary);
+    margin-bottom:10px;
+  }
+  footer.methods ul{ margin:0 0 14px; padding-left: 18px; }
+  footer.methods li{ margin-bottom: 6px; }
+</style>
+
+<div class="wrap">
+
+  <header class="masthead">
+    <div class="eyebrow">Digital service review &middot; Gunnison County, Colorado</div>
+    <h1>Assessor Website Audit</h1>
+    <p class="dek">Three independent AI reviews — ChatGPT, Gemini, and Claude — scored gunnisoncounty.org's
+      assessor pages against the same 100&#8209;point civic-service rubric between September&nbsp;15 and
+      September&nbsp;28, 2026. Total scores land between 60 and 78. All three flag the same underlying problem
+      from different angles: the site is strong on data tools, weak on keeping deadlines and forms current.</p>
+    <div class="meta-row">
+      <span>Review window: <b>Sept 15–28, 2026</b></span>
+      <span>Rubric: <b>7 categories / 100 pts</b></span>
+      <span>Statewide benchmark: <b>24 of 64 counties</b> scored (Gemini run)</span>
+      <span>Site reviewed: <b>gunnisoncounty.org/132/Assessors-Office</b></span>
+    </div>
+  </header>
+
+  <section aria-label="Score summary">
+    <div class="stat-grid">
+      <div class="stat-tile">
+        <span class="tag">ChatGPT review</span>
+        <div class="headline"><span class="num">77</span><span class="of100">/100</span>
+          <span class="grade-chip" data-g="C">C</span></div>
+        <span class="sub">Scored Gunnison only — declined to rank statewide on an n of 1.</span>
+      </div>
+      <div class="stat-tile">
+        <span class="tag">Gemini review</span>
+        <div class="headline"><span class="num">78</span><span class="of100">/100</span>
+          <span class="grade-chip" data-g="C">C</span></div>
+        <span class="sub">Ranked <b style="color:var(--text-primary)">12th of 24</b> counties scored statewide.</span>
+      </div>
+      <div class="stat-tile">
+        <span class="tag">Claude review</span>
+        <div class="headline"><span class="num">60</span><span class="of100">/100</span>
+          <span class="grade-chip" data-g="D">D</span></div>
+        <span class="sub">Barred from a passing grade: appeal deadline is now legally wrong.</span>
+      </div>
+      <div class="stat-tile">
+        <span class="tag">Consolidated action plan</span>
+        <div class="headline"><span class="num">10</span><span class="of100">findings</span></div>
+        <span class="sub"><span style="color:var(--critical);font-weight:700">2 critical</span> ·
+          <span style="color:var(--serious);font-weight:700">3 serious</span> ·
+          <span style="color:var(--warning);font-weight:700">5 to monitor</span></span>
+      </div>
+    </div>
+  </section>
+
+  <section aria-label="Critical finding">
+    <div class="banner">
+      <div class="ico">&#9888;</div>
+      <div>
+        <h3>Published deadlines no longer match state law</h3>
+        <p><b>SB26&#8209;046</b> (signed March&nbsp;26, 2026; effective August&nbsp;12, 2026) moved the real‑property
+          protest deadline from <b>June&nbsp;8 to June&nbsp;1</b>, and aligned the disabled‑veteran exemption
+          deadline to the senior schedule — <b>July&nbsp;15 regular / August&nbsp;15 late</b> — instead of the
+          July&nbsp;1 date still posted. As of the September&nbsp;28, 2026 review, the Appeals page and the
+          Disabled Veteran exemption page had not been updated. An owner who trusts the county's own June&nbsp;8
+          text for the 2027 cycle could file a week too late and lose their right to protest.</p>
+        <div class="cite">Source: Claude review, cross‑checked against leg.colorado.gov/bills/sb26-046 ·
+          gunnisoncounty.org/953/Appeals · gunnisoncounty.org/1069/Disabled-Veteran-Exemption</div>
+      </div>
+    </div>
+  </section>
+
+  <section aria-label="Category score comparison">
+    <div class="section-head">
+      <h2>How the three reviews scored each category</h2>
+      <p>Each bar is that category's score as a share of its rubric maximum, so categories worth different
+        points compare fairly. Claude did not test usability or accessibility directly and marked both as
+        estimates from the assessor office's own internal review — shown hatched.</p>
+    </div>
+
+    <div class="legend">
+      <span class="item"><span class="swatch-dot" style="background:var(--c-chatgpt)"></span>ChatGPT</span>
+      <span class="item"><span class="swatch-dot" style="background:var(--c-gemini)"></span>Gemini</span>
+      <span class="item"><span class="swatch-dot" style="background:var(--c-claude)"></span>Claude</span>
+      <span class="item est">hatched = self-reported estimate, not independently tested</span>
+    </div>
+
+    <div class="cat-block">
+
+      <div class="cat-row">
+        <div class="cat-label">Findability &amp; organization<span class="max">max 15 pts</span></div>
+        <div class="cat-bars">
+          <div class="bar-line"><span class="who">ChatGPT</span><div class="bar-track"><div class="bar-fill" style="width:86.7%;background:var(--c-chatgpt)"></div></div><span class="bar-val">13/15</span></div>
+          <div class="bar-line"><span class="who">Gemini</span><div class="bar-track"><div class="bar-fill" style="width:80%;background:var(--c-gemini)"></div></div><span class="bar-val">12/15</span></div>
+          <div class="bar-line"><span class="who">Claude</span><div class="bar-track"><div class="bar-fill" style="width:66.7%;background:var(--c-claude)"></div></div><span class="bar-val">10/15</span></div>
+        </div>
+      </div>
+
+      <div class="cat-row">
+        <div class="cat-label">Property search &amp; public data<span class="max">max 20 pts</span></div>
+        <div class="cat-bars">
+          <div class="bar-line"><span class="who">ChatGPT</span><div class="bar-track"><div class="bar-fill" style="width:95%;background:var(--c-chatgpt)"></div></div><span class="bar-val">19/20</span></div>
+          <div class="bar-line"><span class="who">Gemini</span><div class="bar-track"><div class="bar-fill" style="width:85%;background:var(--c-gemini)"></div></div><span class="bar-val">17/20</span></div>
+          <div class="bar-line"><span class="who">Claude</span><div class="bar-track"><div class="bar-fill" style="width:70%;background:var(--c-claude)"></div></div><span class="bar-val">14/20</span></div>
+        </div>
+      </div>
+
+      <div class="cat-row">
+        <div class="cat-label">Self-service tasks<span class="max">max 20 pts</span></div>
+        <div class="cat-bars">
+          <div class="bar-line"><span class="who">ChatGPT</span><div class="bar-track"><div class="bar-fill" style="width:85%;background:var(--c-chatgpt)"></div></div><span class="bar-val">17/20</span></div>
+          <div class="bar-line"><span class="who">Gemini</span><div class="bar-track"><div class="bar-fill" style="width:65%;background:var(--c-gemini)"></div></div><span class="bar-val">13/20</span></div>
+          <div class="bar-line"><span class="who">Claude</span><div class="bar-track"><div class="bar-fill" style="width:55%;background:var(--c-claude)"></div></div><span class="bar-val">11/20</span></div>
+        </div>
+      </div>
+
+      <div class="cat-row">
+        <div class="cat-label">Explanations &amp; transparency<span class="max">max 15 pts</span></div>
+        <div class="cat-bars">
+          <div class="bar-line"><span class="who">ChatGPT</span><div class="bar-track"><div class="bar-fill" style="width:80%;background:var(--c-chatgpt)"></div></div><span class="bar-val">12/15</span></div>
+          <div class="bar-line"><span class="who">Gemini</span><div class="bar-track"><div class="bar-fill" style="width:93.3%;background:var(--c-gemini)"></div></div><span class="bar-val">14/15</span></div>
+          <div class="bar-line"><span class="who">Claude</span><div class="bar-track"><div class="bar-fill" style="width:66.7%;background:var(--c-claude)"></div></div><span class="bar-val">10/15</span></div>
+        </div>
+      </div>
+
+      <div class="cat-row">
+        <div class="cat-label">Usability across devices<span class="max">max 10 pts</span></div>
+        <div class="cat-bars">
+          <div class="bar-line"><span class="who">ChatGPT</span><div class="bar-track"><div class="bar-fill" style="width:60%;background:var(--c-chatgpt)"></div></div><span class="bar-val">6/10</span></div>
+          <div class="bar-line"><span class="who">Gemini</span><div class="bar-track"><div class="bar-fill" style="width:70%;background:var(--c-gemini)"></div></div><span class="bar-val">7/10</span></div>
+          <div class="bar-line"><span class="who">Claude</span><div class="bar-track"><div class="bar-fill est" style="width:70%;color:var(--c-claude)"></div></div><span class="bar-val">7/10*</span></div>
+        </div>
+      </div>
+
+      <div class="cat-row">
+        <div class="cat-label">Accessibility<span class="max">max 10 pts</span></div>
+        <div class="cat-bars">
+          <div class="bar-line"><span class="who">ChatGPT</span><div class="bar-track"><div class="bar-fill" style="width:50%;background:var(--c-chatgpt)"></div></div><span class="bar-val">5/10</span></div>
+          <div class="bar-line"><span class="who">Gemini</span><div class="bar-track"><div class="bar-fill" style="width:70%;background:var(--c-gemini)"></div></div><span class="bar-val">7/10</span></div>
+          <div class="bar-line"><span class="who">Claude</span><div class="bar-track"><div class="bar-fill est" style="width:50%;color:var(--c-claude)"></div></div><span class="bar-val">5/10*</span></div>
+        </div>
+      </div>
+
+      <div class="cat-row">
+        <div class="cat-label">Currency &amp; trust<span class="max">max 10 pts</span></div>
+        <div class="cat-bars">
+          <div class="bar-line"><span class="who">ChatGPT</span><div class="bar-track"><div class="bar-fill" style="width:50%;background:var(--c-chatgpt)"></div></div><span class="bar-val">5/10</span></div>
+          <div class="bar-line"><span class="who">Gemini</span><div class="bar-track"><div class="bar-fill" style="width:80%;background:var(--c-gemini)"></div></div><span class="bar-val">8/10</span></div>
+          <div class="bar-line"><span class="who">Claude</span><div class="bar-track"><div class="bar-fill" style="width:30%;background:var(--c-claude)"></div></div><span class="bar-val">3/10</span></div>
+        </div>
+      </div>
+
+      <div class="cat-foot">* Claude estimate, based on the assessor office's own September&nbsp;11, 2026 internal
+        review rather than an independent test. Widest disagreement is in <b>Currency &amp; Trust</b> (30%–80%)
+        and <b>Self‑Service Tasks</b> (55%–85%) — the two categories most affected by the deadline problem above.</div>
+    </div>
+  </section>
+
+  <section aria-label="Statewide ranking">
+    <div class="section-head">
+      <h2>Where Gunnison sits among 24 benchmarked counties</h2>
+      <p>Only the Gemini review scored enough counties to support a real ranking — 24 of Colorado's 64, chosen to
+        span Front Range, mountain-resort, and rural jurisdictions. The other 40 counties were catalogued but not
+        scored, and are excluded here rather than shown as zeros.</p>
+    </div>
+    <div class="rank-card">
+      <div id="county-rows">
+        <div class="county-row" data-tip="94/100 · A"><span class="rk">1</span><span class="nm">Douglas</span><div class="ctrack"><div class="cfill" style="width:94%"></div></div><span class="val">94</span></div>
+        <div class="county-row" data-tip="93/100 · A"><span class="rk">2</span><span class="nm">Weld</span><div class="ctrack"><div class="cfill" style="width:93%"></div></div><span class="val">93</span></div>
+        <div class="county-row" data-tip="91/100 · A"><span class="rk">3</span><span class="nm">Boulder</span><div class="ctrack"><div class="cfill" style="width:91%"></div></div><span class="val">91</span></div>
+        <div class="county-row" data-tip="90/100 · A"><span class="rk">4</span><span class="nm">Larimer</span><div class="ctrack"><div class="cfill" style="width:90%"></div></div><span class="val">90</span></div>
+        <div class="county-row" data-tip="89/100 · B"><span class="rk">5</span><span class="nm">Denver</span><div class="ctrack"><div class="cfill" style="width:89%"></div></div><span class="val">89</span></div>
+        <div class="county-row" data-tip="88/100 · B"><span class="rk">6</span><span class="nm">Eagle</span><div class="ctrack"><div class="cfill" style="width:88%"></div></div><span class="val">88</span></div>
+        <div class="county-row" data-tip="87/100 · B"><span class="rk">7</span><span class="nm">El Paso</span><div class="ctrack"><div class="cfill" style="width:87%"></div></div><span class="val">87</span></div>
+        <div class="county-row" data-tip="83/100 · B"><span class="rk">8</span><span class="nm">Adams</span><div class="ctrack"><div class="cfill" style="width:83%"></div></div><span class="val">83</span></div>
+        <div class="county-row" data-tip="82/100 · B"><span class="rk">9</span><span class="nm">Broomfield</span><div class="ctrack"><div class="cfill" style="width:82%"></div></div><span class="val">82</span></div>
+        <div class="county-row" data-tip="81/100 · B"><span class="rk">10</span><span class="nm">Pitkin</span><div class="ctrack"><div class="cfill" style="width:81%"></div></div><span class="val">81</span></div>
+        <div class="county-row" data-tip="80/100 · B"><span class="rk">11</span><span class="nm">Summit</span><div class="ctrack"><div class="cfill" style="width:80%"></div></div><span class="val">80</span></div>
+        <div class="county-row is-gunnison" data-tip="78/100 · C · under review"><span class="rk">12</span><span class="nm">Gunnison</span><div class="ctrack"><div class="cfill" style="width:78%"></div></div><span class="val">78</span></div>
+        <div class="county-row" data-tip="75/100 · C"><span class="rk">13</span><span class="nm">Montrose</span><div class="ctrack"><div class="cfill" style="width:75%"></div></div><span class="val">75</span></div>
+        <div class="county-row" data-tip="74/100 · C"><span class="rk">14</span><span class="nm">Chaffee</span><div class="ctrack"><div class="cfill" style="width:74%"></div></div><span class="val">74</span></div>
+        <div class="county-row" data-tip="73/100 · C"><span class="rk">15</span><span class="nm">Park</span><div class="ctrack"><div class="cfill" style="width:73%"></div></div><span class="val">73</span></div>
+        <div class="county-row" data-tip="72/100 · C"><span class="rk">16</span><span class="nm">Moffat</span><div class="ctrack"><div class="cfill" style="width:72%"></div></div><span class="val">72</span></div>
+        <div class="county-row" data-tip="72/100 · C"><span class="rk">17</span><span class="nm">Teller</span><div class="ctrack"><div class="cfill" style="width:72%"></div></div><span class="val">72</span></div>
+        <div class="county-row" data-tip="71/100 · C"><span class="rk">18</span><span class="nm">Fremont</span><div class="ctrack"><div class="cfill" style="width:71%"></div></div><span class="val">71</span></div>
+        <div class="county-row" data-tip="70/100 · C"><span class="rk">19</span><span class="nm">Lake</span><div class="ctrack"><div class="cfill" style="width:70%"></div></div><span class="val">70</span></div>
+        <div class="county-row" data-tip="68/100 · D"><span class="rk">20</span><span class="nm">Conejos</span><div class="ctrack"><div class="cfill" style="width:68%"></div></div><span class="val">68</span></div>
+        <div class="county-row" data-tip="67/100 · D"><span class="rk">21</span><span class="nm">Rio Grande</span><div class="ctrack"><div class="cfill" style="width:67%"></div></div><span class="val">67</span></div>
+        <div class="county-row" data-tip="58/100 · F"><span class="rk">22</span><span class="nm">Mineral</span><div class="ctrack"><div class="cfill" style="width:58%"></div></div><span class="val">58</span></div>
+        <div class="county-row" data-tip="54/100 · F"><span class="rk">23</span><span class="nm">Cheyenne</span><div class="ctrack"><div class="cfill" style="width:54%"></div></div><span class="val">54</span></div>
+        <div class="county-row" data-tip="52/100 · F"><span class="rk">24</span><span class="nm">Kiowa</span><div class="ctrack"><div class="cfill" style="width:52%"></div></div><span class="val">52</span></div>
+      </div>
+      <div class="rank-foot">Gunnison ranks <b style="color:var(--c-gunnison)">12th of 24</b> — squarely median for
+        this sample, ahead of every county running static third-party listings only, behind every county with a
+        working online appeal portal (Douglas, Weld, Boulder, Larimer, Denver, Eagle, El&nbsp;Paso).</div>
+    </div>
+  </section>
+
+  <section aria-label="Consolidated action plan">
+    <div class="section-head">
+      <h2>Consolidated action plan</h2>
+      <p>The ten recommendations below merge overlapping findings from all three reviews into one prioritized
+        list, so duplicate advice ("fix the deadline," said three ways) becomes one line item.</p>
+    </div>
+
+    <div class="plan-group">
+      <div class="plan-group-head"><span class="pill" data-p="0">P0 &middot; Critical</span>
+        <span class="cnt">Fix before the next filing cycle</span></div>
+      <div class="card-list">
+        <div class="plan-card" data-p="0">
+          <div>
+            <div class="issue">Appeal &amp; exemption deadlines are wrong under new state law</div>
+            <div class="fix">Correct every mention to June 1 (real property) and July 15 / Aug 15 late
+              (disabled veteran); add a "deadlines last verified" date stamp; confirm whether Gunnison's
+              alternate procedures shift the personal-property dates too.</div>
+          </div>
+          <div class="plan-side">
+            <div class="flag-row"><span class="flag-chip"><span class="swatch-dot" style="background:var(--c-claude)"></span>Claude</span></div>
+            <div class="effort-tag">Impact <b>Very high</b> · Effort <b>Low</b></div>
+          </div>
+        </div>
+        <div class="plan-card" data-p="0">
+          <div>
+            <div class="issue">The 2026 appeals calendar contradicts itself</div>
+            <div class="fix">The Appeals page states June 8 as the real‑property deadline, then separately says
+              postmarked-after-June-9 protests are rejected and online protests close June 8. Make one
+              sentence the sole authority per submission method and remove the conflicting row.</div>
+          </div>
+          <div class="plan-side">
+            <div class="flag-row">
+              <span class="flag-chip"><span class="swatch-dot" style="background:var(--c-chatgpt)"></span>ChatGPT</span>
+              <span class="flag-chip"><span class="swatch-dot" style="background:var(--c-gemini)"></span>Gemini</span>
+            </div>
+            <div class="effort-tag">Impact <b>Very high</b> · Effort <b>Low</b></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="plan-group">
+      <div class="plan-group-head"><span class="pill" data-p="1">P1 &middot; Serious</span>
+        <span class="cnt">Fix this update cycle</span></div>
+      <div class="card-list">
+        <div class="plan-card" data-p="1">
+          <div>
+            <div class="issue">Tax worked-example uses stale assessment rates</div>
+            <div class="fix">The FAQ's estimate walk-through still uses 6.95% / 27.9% / a 5.5% revenue limit.
+              Current 2026 rates are 7.05% (school) and 6.8% (local government) residential, 26% vacant/commercial,
+              25% agricultural. Replace with a dated 2026 example showing both assessed values, modelled on
+              Larimer's "Value Flow Chart."</div>
+          </div>
+          <div class="plan-side">
+            <div class="flag-row">
+              <span class="flag-chip"><span class="swatch-dot" style="background:var(--c-chatgpt)"></span>ChatGPT</span>
+              <span class="flag-chip"><span class="swatch-dot" style="background:var(--c-gemini)"></span>Gemini</span>
+              <span class="flag-chip"><span class="swatch-dot" style="background:var(--c-claude)"></span>Claude</span>
+            </div>
+            <div class="effort-tag">Impact <b>High</b> · Effort <b>Medium</b></div>
+          </div>
+        </div>
+        <div class="plan-card" data-p="1">
+          <div>
+            <div class="issue">Every self-service task ends in a mailed, emailed, or faxed PDF</div>
+            <div class="fix">No appeal, address-change, or exemption request gets a confirmation receipt or
+              status. Build online forms with e‑signature and automatic receipts, modelled on Douglas, Weld,
+              Eagle, El Paso, and Mesa counties' online appeal portals.</div>
+          </div>
+          <div class="plan-side">
+            <div class="flag-row">
+              <span class="flag-chip"><span class="swatch-dot" style="background:var(--c-chatgpt)"></span>ChatGPT</span>
+              <span class="flag-chip"><span class="swatch-dot" style="background:var(--c-gemini)"></span>Gemini</span>
+              <span class="flag-chip"><span class="swatch-dot" style="background:var(--c-claude)"></span>Claude</span>
+            </div>
+            <div class="effort-tag">Impact <b>High</b> · Effort <b>Medium–high</b></div>
+          </div>
+        </div>
+        <div class="plan-card" data-p="1">
+          <div>
+            <div class="issue">Exemption &amp; classification forms are stale and confusing</div>
+            <div class="fix">Senior, veteran, spouse and Qualified Senior forms are labelled 2024/2025;
+              the senior page says "two groups" while its parent page says "three"; the forms list has a
+              "Gold Sar Spouse" typo. Add a short eligibility guide above the form list, verify and re-date
+              every file, and fix the typos.</div>
+          </div>
+          <div class="plan-side">
+            <div class="flag-row">
+              <span class="flag-chip"><span class="swatch-dot" style="background:var(--c-chatgpt)"></span>ChatGPT</span>
+              <span class="flag-chip"><span class="swatch-dot" style="background:var(--c-gemini)"></span>Gemini</span>
+              <span class="flag-chip"><span class="swatch-dot" style="background:var(--c-claude)"></span>Claude</span>
+            </div>
+            <div class="effort-tag">Impact <b>High</b> · Effort <b>Medium</b></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="plan-group">
+      <div class="plan-group-head"><span class="pill" data-p="2">P2 &middot; Monitor</span>
+        <span class="cnt">Plan for the next redesign pass</span></div>
+      <div class="card-list">
+        <div class="plan-card" data-p="2">
+          <div>
+            <div class="issue">No task-based entry point on the main Assessor page</div>
+            <div class="fix">Owners must already know which page covers their goal. Add an "I want to…" hub:
+              find my property · understand my value · appeal · apply for an exemption · change my address ·
+              pay my taxes — with the Treasurer handoff labelled explicitly.</div>
+          </div>
+          <div class="plan-side">
+            <div class="flag-row">
+              <span class="flag-chip"><span class="swatch-dot" style="background:var(--c-chatgpt)"></span>ChatGPT</span>
+              <span class="flag-chip"><span class="swatch-dot" style="background:var(--c-gemini)"></span>Gemini</span>
+              <span class="flag-chip"><span class="swatch-dot" style="background:var(--c-claude)"></span>Claude</span>
+            </div>
+            <div class="effort-tag">Impact <b>Medium</b> · Effort <b>Low</b></div>
+          </div>
+        </div>
+        <div class="plan-card" data-p="2">
+          <div>
+            <div class="issue">Spatialest/Comper handoff is confusing</div>
+            <div class="fix">Recurring cache-reload errors, no stated value-year or refresh date, and the
+              Community Portal's page description still reads "Welcome to Riverside County Assessor." Fix the
+              vendor template text and caching issue, and add cross-links back to appeal and exemption pages.</div>
+          </div>
+          <div class="plan-side">
+            <div class="flag-row">
+              <span class="flag-chip"><span class="swatch-dot" style="background:var(--c-gemini)"></span>Gemini</span>
+              <span class="flag-chip"><span class="swatch-dot" style="background:var(--c-claude)"></span>Claude</span>
+            </div>
+            <div class="effort-tag">Impact <b>Medium</b> · Effort <b>Medium</b></div>
+          </div>
+        </div>
+        <div class="plan-card" data-p="2">
+          <div>
+            <div class="issue">Mobile and accessibility performance is unverified</div>
+            <div class="fix">All three reviews flagged this as an estimate, not a tested result. The office's
+              own internal check already found a mobile alert banner clipping its heading at 390px width. Run a
+              real keyboard, screen-reader, contrast, and mobile-viewport audit and fix what it finds.</div>
+          </div>
+          <div class="plan-side">
+            <div class="flag-row">
+              <span class="flag-chip"><span class="swatch-dot" style="background:var(--c-chatgpt)"></span>ChatGPT</span>
+              <span class="flag-chip"><span class="swatch-dot" style="background:var(--c-gemini)"></span>Gemini</span>
+              <span class="flag-chip"><span class="swatch-dot" style="background:var(--c-claude)"></span>Claude</span>
+            </div>
+            <div class="effort-tag">Impact <b>Potentially high</b> · Effort <b>Medium–high</b></div>
+          </div>
+        </div>
+        <div class="plan-card" data-p="2">
+          <div>
+            <div class="issue">No interactive property-tax estimator</div>
+            <div class="fix">Owners can see their new value but can't translate it into an expected bill.
+              Add a value → assessed value → mill-levy estimator, modelled on Boulder's or Weld's tools.</div>
+          </div>
+          <div class="plan-side">
+            <div class="flag-row">
+              <span class="flag-chip"><span class="swatch-dot" style="background:var(--c-gemini)"></span>Gemini</span>
+              <span class="flag-chip"><span class="swatch-dot" style="background:var(--c-claude)"></span>Claude</span>
+            </div>
+            <div class="effort-tag">Impact <b>Medium</b> · Effort <b>Medium–high</b></div>
+          </div>
+        </div>
+        <div class="plan-card" data-p="2">
+          <div>
+            <div class="issue">Leftover content debt: duplicate pages, stale Quick Links</div>
+            <div class="fix">Two separate pages are both titled "Recent Legislation" (/1062, /1063); the
+              homepage's "2026 Assessor's Report" and "2026 Abstract of Assessment" Quick Links still point to
+              2023 PDF filenames. Merge the duplicates and relink to the current files before the next publish.</div>
+          </div>
+          <div class="plan-side">
+            <div class="flag-row">
+              <span class="flag-chip"><span class="swatch-dot" style="background:var(--c-claude)"></span>Claude</span>
+            </div>
+            <div class="effort-tag">Impact <b>Medium</b> · Effort <b>Low</b></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section aria-label="Strengths">
+    <div class="section-head">
+      <h2>What's already working</h2>
+      <p>Every review independently called out the same strengths — the fixes above are about currency and
+        completion, not a rebuild.</p>
+    </div>
+    <div class="strength-grid">
+      <div class="strength-card"><span class="mark">&#10003;</span>
+        <div class="body"><b>Three linked data tools</b>
+          <span>A property-record search, a map-based Community Portal, and the Comper comparable-sales
+            builder all work from one owner journey.</span></div>
+      </div>
+      <div class="strength-card"><span class="mark">&#10003;</span>
+        <div class="body"><b>Downloadable data &amp; e-notices</b>
+          <span>Bulk database exports with data definitions, plus eNoticesOnline for paperless Notices of
+            Valuation and tax statements.</span></div>
+      </div>
+      <div class="strength-card"><span class="mark">&#10003;</span>
+        <div class="body"><b>Unusually candid explanations</b>
+          <span>Plain-language coverage of market/cost/income approaches, what counts as a valid appeal
+            reason, and what the Assessor's office does and doesn't control.</span></div>
+      </div>
+      <div class="strength-card"><span class="mark">&#10003;</span>
+        <div class="body"><b>Complete appeal chain</b>
+          <span>Notice of Determination, County Board of Equalization, and the next-step options (Board of
+            Assessment Appeals, district court, arbitration) are all documented end to end.</span></div>
+      </div>
+    </div>
+  </section>
+
+  <details class="prompt-block">
+    <summary>
+      <span class="st"><b>The research prompt</b><span>Same instructions, sent to ChatGPT, Gemini, and Claude &mdash; click to read in full</span></span>
+      <span class="chev">&#9656;</span>
+    </summary>
+    <div class="prompt-body">
+      <p>Review the public-facing assessor websites for all 64 Colorado counties. My main goal is to understand
+        where Gunnison County stands statewide and how its website could better serve property owners.</p>
+
+      <h4>Rubric &mdash; same 100 points for every county</h4>
+      <div class="prompt-body-scroll">
+        <table>
+          <tr><th>Category</th><th>Pts</th><th>Evaluate</th></tr>
+          <tr><td>Findability and organization</td><td>15</td><td>How easily can a resident find property search, appeals, exemptions, forms, and contact information? Are navigation labels clear?</td></tr>
+          <tr><td>Property search and public data</td><td>20</td><td>Can a user find a parcel by address or account number and view useful values, property details, sales information, and maps? Are the data and their dates explained?</td></tr>
+          <tr><td>Self-service tasks</td><td>20</td><td>Can an owner find and complete or submit common requests, including an appeal, address change, exemption application, property-record correction, or information request?</td></tr>
+          <tr><td>Explanations and transparency</td><td>15</td><td>Does the site explain how property is valued, why a value may change, what the assessor controls, and how value relates to taxes?</td></tr>
+          <tr><td>Usability across devices</td><td>10</td><td>Do menus, searches, forms, and linked portals work clearly on desktop and mobile?</td></tr>
+          <tr><td>Accessibility</td><td>10</td><td>Are core tasks usable with a keyboard, readable text and contrast, meaningful link labels, and accessible forms or documents?</td></tr>
+          <tr><td>Currency and trust</td><td>10</td><td>Are deadlines, rates, notices, contact details, and resources current and clearly dated where appropriate?</td></tr>
+        </table>
+      </div>
+      <p>Assign letter grades of A (90&ndash;100), B (80&ndash;89), C (70&ndash;79), D (60&ndash;69), or F (below 60).
+        Do not award an A if property search is unusable, appeal instructions are materially wrong or missing, or
+        a major accessibility barrier blocks a core task. State the reason if this rule limits a county's grade.</p>
+
+      <h4>Three tasks, attempted for every county</h4>
+      <ol>
+        <li>Find a property record using an address or account/parcel number.</li>
+        <li>Find the current instructions and deadline for appealing a property value.</li>
+        <li>Find how to apply for an exemption or correct property information.</li>
+      </ol>
+
+      <h4>Scoring rules</h4>
+      <p>Give every county a numeric score, letter grade, category scores, and brief evidence with links to the
+        pages or tools examined. Distinguish missing, broken, and could not verify. Do not assume a search tool
+        works merely because its link exists. Note when a task moves to a treasurer, GIS, vendor, or other
+        external portal, and assess whether that handoff is understandable. Do not count a service as missing
+        if it is available through a clearly linked external portal.</p>
+      <p>For each category, explain what earned or lost points using observed evidence. Apply the same scoring
+        standard to every county: award full points when the relevant information or task is easy to find, clear,
+        current, and usable; partial points when it is available but difficult to find, confusing, incomplete, or
+        cumbersome; and zero when it is absent or unusable. Do not treat an unverified feature as missing or award
+        it full credit. Record what you could verify, identify the uncertainty, and explain how it affects the
+        score. Base grades on the property-owner experience, not visual appearance alone.</p>
+
+      <h4>Gunnison-only depth</h4>
+      <p>Provide detailed improvement recommendations only for Gunnison County. Test Gunnison's full
+        property-owner journey more thoroughly, including finding a record, understanding its value and property
+        details, appealing, finding forms and exemptions, correcting information, and understanding property
+        taxes. For each recommendation, identify the specific problem, the proposed change, why it would help an
+        owner, and its estimated impact and implementation effort. Rank the recommendations by priority. Link to
+        working examples from other Colorado counties when they offer a useful model.</p>
+
+      <h4>Required order of results</h4>
+      <ol>
+        <li>A table of all 64 counties, sorted by score.</li>
+        <li>Gunnison County's statewide rank and percentile, plus its category scores compared with the statewide
+          median and the highest-scoring counties.</li>
+        <li>Gunnison's strengths and the specific points where a property owner may get stuck.</li>
+        <li>Gunnison-only recommendations, ranked by priority.</li>
+        <li>A short methods section stating the review date, how many of the 64 sites and external portals were
+          actually tested, any limitations, and which findings need manual verification.</li>
+      </ol>
+
+      <h4>Dashboard-ready data</h4>
+      <p>Also provide dashboard-ready data as downloadable CSV files or a single JSON file. Include one record
+        per county with its name, assessor website URL, review date, seven category scores, total score, letter
+        grade, statewide rank, verification status, and brief summary. Provide separate records for Gunnison's
+        recommendations with the issue, proposed change, priority, expected owner impact, estimated effort, and
+        implementation status. Use consistent field names and values. Keep evidence links in the data, use
+        <code>null</code> for scores that cannot be verified, and do not combine multiple counties or
+        recommendations into a single record. Structure the files so they can be used to build a simple
+        interactive dashboard and updated after manual review.</p>
+
+      <h4>Guardrails against overclaiming</h4>
+      <p>If you cannot examine all 64 counties thoroughly, say so plainly. Do not present a partial sample as a
+        definitive statewide ranking or percentile. Identify which counties were reviewed, label the comparison
+        provisional, and leave unreviewed scores and ranks blank. Do not invent findings or links to fill gaps.</p>
+    </div>
+  </details>
+
+  <footer class="methods">
+    <h3>Methods &amp; limitations</h3>
+    <ul>
+      <li>Three AI systems (ChatGPT, Gemini, Claude) independently ran the same research prompt: score every
+        Colorado county assessor site on a shared 7-category, 100-point rubric, and complete three property-owner
+        tasks (find a record, find the appeal deadline, find an exemption/correction path).</li>
+      <li>Only Gemini attempted the full 64-county sweep and completed scoring for 24; the other 40 were
+        catalogued by URL only and left unscored, not shown as zero. ChatGPT and Claude scored Gunnison directly
+        and treated statewide ranking as undeterminable given their smaller sample.</li>
+      <li>No review submitted a live appeal, exemption, or correction — all task testing stopped short of
+        actual submission. Mobile-device and formal accessibility (keyboard/screen-reader) testing was not
+        performed by any reviewer; those scores are explicitly marked as estimates above.</li>
+      <li>This dashboard is a synthesis of three AI-generated web reviews, not a legal opinion or a
+        county-verified audit. The SB26-046 deadline claim should be confirmed with county counsel before any
+        page is changed.</li>
+      <li>Source files: <i>colorado_assessor_review_provisional.json</i> (ChatGPT),
+        <i>gemini-code-1790635655856.json</i> (Gemini), and <i>Assessor website Dashboard info.pdf</i>
+        (side-by-side transcript of all three, including Claude's narrative review).</li>
+    </ul>
+  </footer>
+
+</div>
